@@ -141,9 +141,9 @@ public class KafkaReader {
 	 */
 
 	public boolean fetch() throws IOException {
-		if (currentOffset >= lastOffset) {
+/*		if (currentOffset >= lastOffset) {
 			return false;
-		}
+		}*/
 		long tempTime = System.currentTimeMillis();
 		TopicAndPartition topicAndPartition = new TopicAndPartition(
 				kafkaRequest.getTopic(), kafkaRequest.getPartition());
