@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import com.twitter.elephantbird.util.HadoopCompat;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
@@ -397,7 +399,7 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 
 	private List<InputSplit> allocateWork(List<EtlRequest> requests,
 			JobContext context) throws IOException {
-		int numTasks = context.getConfiguration()
+		int numTasks = HadoopCompat.getConfiguration(context)
 				.getInt("mapred.map.tasks", 30);
 		// Reverse sort by size
 		Collections.sort(requests, new Comparator<EtlRequest>() {
@@ -451,7 +453,7 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 
 	private void writePrevious(Collection<EtlKey> missedKeys, JobContext context)
 			throws IOException {
-		FileSystem fs = FileSystem.get(context.getConfiguration());
+		FileSystem fs = FileSystem.get(HadoopCompat.getConfiguration(context));
 		Path output = FileOutputFormat.getOutputPath(context);
 
 		if (fs.exists(output)) {
@@ -473,7 +475,7 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 
 	private void writeRequests(List<EtlRequest> requests, JobContext context)
 			throws IOException {
-		FileSystem fs = FileSystem.get(context.getConfiguration());
+		FileSystem fs = FileSystem.get(HadoopCompat.getConfiguration(context));
 		Path output = FileOutputFormat.getOutputPath(context);
 
 		if (fs.exists(output)) {
@@ -482,7 +484,7 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 
 		output = new Path(output, EtlMultiOutputFormat.REQUESTS_FILE);
 		SequenceFile.Writer writer = SequenceFile.createWriter(fs,
-				context.getConfiguration(), output, EtlRequest.class,
+				HadoopCompat.getConfiguration(context), output, EtlRequest.class,
 				NullWritable.class);
 
 		for (EtlRequest r : requests) {
@@ -495,11 +497,11 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 			JobContext context) throws IOException {
 		Map<EtlRequest, EtlKey> offsetKeysMap = new HashMap<EtlRequest, EtlKey>();
 		for (Path input : inputs) {
-			FileSystem fs = input.getFileSystem(context.getConfiguration());
+			FileSystem fs = input.getFileSystem(HadoopCompat.getConfiguration(context));
 			for (FileStatus f : fs.listStatus(input, new OffsetFileFilter())) {
 				log.info("previous offset file:" + f.getPath().toString());
 				SequenceFile.Reader reader = new SequenceFile.Reader(fs,
-						f.getPath(), context.getConfiguration());
+						f.getPath(), HadoopCompat.getConfiguration(context));
 				EtlKey key = new EtlKey();
 				while (reader.next(key, NullWritable.get())) {
 					EtlRequest request = new EtlRequest(context,
@@ -523,109 +525,109 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 	}
 
 	public static void setMoveToLatestTopics(JobContext job, String val) {
-		job.getConfiguration().set(KAFKA_MOVE_TO_LAST_OFFSET_LIST, val);
+		HadoopCompat.getConfiguration(job).set(KAFKA_MOVE_TO_LAST_OFFSET_LIST, val);
 	}
 
 	public static String[] getMoveToLatestTopics(JobContext job) {
-		return job.getConfiguration()
+		return HadoopCompat.getConfiguration(job)
 				.getStrings(KAFKA_MOVE_TO_LAST_OFFSET_LIST);
 	}
 
 	public static void setKafkaClientBufferSize(JobContext job, int val) {
-		job.getConfiguration().setInt(KAFKA_CLIENT_BUFFER_SIZE, val);
+		HadoopCompat.getConfiguration(job).setInt(KAFKA_CLIENT_BUFFER_SIZE, val);
 	}
 
 	public static int getKafkaClientBufferSize(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_CLIENT_BUFFER_SIZE,
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_CLIENT_BUFFER_SIZE,
 				2 * 1024 * 1024);
 	}
 
 	public static void setKafkaClientTimeout(JobContext job, int val) {
-		job.getConfiguration().setInt(KAFKA_CLIENT_SO_TIMEOUT, val);
+		HadoopCompat.getConfiguration(job).setInt(KAFKA_CLIENT_SO_TIMEOUT, val);
 	}
 
 	public static int getKafkaClientTimeout(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_CLIENT_SO_TIMEOUT, 60000);
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_CLIENT_SO_TIMEOUT, 60000);
 	}
 
 	public static void setKafkaMaxPullHrs(JobContext job, int val) {
-		job.getConfiguration().setInt(KAFKA_MAX_PULL_HRS, val);
+		HadoopCompat.getConfiguration(job).setInt(KAFKA_MAX_PULL_HRS, val);
 	}
 
 	public static int getKafkaMaxPullHrs(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_MAX_PULL_HRS, -1);
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_MAX_PULL_HRS, -1);
 	}
 
 	public static void setKafkaMaxPullMinutesPerTask(JobContext job, int val) {
-		job.getConfiguration().setInt(KAFKA_MAX_PULL_MINUTES_PER_TASK, val);
+		HadoopCompat.getConfiguration(job).setInt(KAFKA_MAX_PULL_MINUTES_PER_TASK, val);
 	}
 
 	public static int getKafkaMaxPullMinutesPerTask(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_MAX_PULL_MINUTES_PER_TASK,
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_MAX_PULL_MINUTES_PER_TASK,
 				-1);
 	}
 
 	public static void setKafkaMaxHistoricalDays(JobContext job, int val) {
-		job.getConfiguration().setInt(KAFKA_MAX_HISTORICAL_DAYS, val);
+		HadoopCompat.getConfiguration(job).setInt(KAFKA_MAX_HISTORICAL_DAYS, val);
 	}
 
 	public static int getKafkaMaxHistoricalDays(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_MAX_HISTORICAL_DAYS, -1);
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_MAX_HISTORICAL_DAYS, -1);
 	}
 
 	public static void setKafkaBlacklistTopic(JobContext job, String val) {
-		job.getConfiguration().set(KAFKA_BLACKLIST_TOPIC, val);
+		HadoopCompat.getConfiguration(job).set(KAFKA_BLACKLIST_TOPIC, val);
 	}
 
 	public static String[] getKafkaBlacklistTopic(JobContext job) {
-		if (job.getConfiguration().get(KAFKA_BLACKLIST_TOPIC) != null
-				&& !job.getConfiguration().get(KAFKA_BLACKLIST_TOPIC).isEmpty()) {
-			return job.getConfiguration().getStrings(KAFKA_BLACKLIST_TOPIC);
+		if (HadoopCompat.getConfiguration(job).get(KAFKA_BLACKLIST_TOPIC) != null
+				&& !HadoopCompat.getConfiguration(job).get(KAFKA_BLACKLIST_TOPIC).isEmpty()) {
+			return HadoopCompat.getConfiguration(job).getStrings(KAFKA_BLACKLIST_TOPIC);
 		} else {
 			return new String[] {};
 		}
 	}
 
 	public static void setKafkaWhitelistTopic(JobContext job, String val) {
-		job.getConfiguration().set(KAFKA_WHITELIST_TOPIC, val);
+		HadoopCompat.getConfiguration(job).set(KAFKA_WHITELIST_TOPIC, val);
 	}
 
 	public static String[] getKafkaWhitelistTopic(JobContext job) {
-		if (job.getConfiguration().get(KAFKA_WHITELIST_TOPIC) != null
-				&& !job.getConfiguration().get(KAFKA_WHITELIST_TOPIC).isEmpty()) {
-			return job.getConfiguration().getStrings(KAFKA_WHITELIST_TOPIC);
+		if (HadoopCompat.getConfiguration(job).get(KAFKA_WHITELIST_TOPIC) != null
+				&& !HadoopCompat.getConfiguration(job).get(KAFKA_WHITELIST_TOPIC).isEmpty()) {
+			return HadoopCompat.getConfiguration(job).getStrings(KAFKA_WHITELIST_TOPIC);
 		} else {
 			return new String[] {};
 		}
 	}
 
 	public static void setEtlIgnoreSchemaErrors(JobContext job, boolean val) {
-		job.getConfiguration().setBoolean(ETL_IGNORE_SCHEMA_ERRORS, val);
+		HadoopCompat.getConfiguration(job).setBoolean(ETL_IGNORE_SCHEMA_ERRORS, val);
 	}
 
 	public static boolean getEtlIgnoreSchemaErrors(JobContext job) {
-		return job.getConfiguration().getBoolean(ETL_IGNORE_SCHEMA_ERRORS,
+		return HadoopCompat.getConfiguration(job).getBoolean(ETL_IGNORE_SCHEMA_ERRORS,
 				false);
 	}
 
 	public static void setEtlAuditIgnoreServiceTopicList(JobContext job,
 			String topics) {
-		job.getConfiguration().set(ETL_AUDIT_IGNORE_SERVICE_TOPIC_LIST, topics);
+		HadoopCompat.getConfiguration(job).set(ETL_AUDIT_IGNORE_SERVICE_TOPIC_LIST, topics);
 	}
 
 	public static String[] getEtlAuditIgnoreServiceTopicList(JobContext job) {
-		return job.getConfiguration().getStrings(
+		return HadoopCompat.getConfiguration(job).getStrings(
 				ETL_AUDIT_IGNORE_SERVICE_TOPIC_LIST, "");
 	}
 
 	public static void setMessageDecoderClass(JobContext job,
 			Class<MessageDecoder> cls) {
-		job.getConfiguration().setClass(CAMUS_MESSAGE_DECODER_CLASS, cls,
+		HadoopCompat.getConfiguration(job).setClass(CAMUS_MESSAGE_DECODER_CLASS, cls,
 				MessageDecoder.class);
 	}
 
 	public static Class<MessageDecoder> getMessageDecoderClass(JobContext job) {
-		return (Class<MessageDecoder>) job.getConfiguration().getClass(
+		return (Class<MessageDecoder>) HadoopCompat.getConfiguration(job).getClass(
 				CAMUS_MESSAGE_DECODER_CLASS, KafkaAvroMessageDecoder.class);
 	}
 

@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.Comparator;
 import java.util.Arrays;
 
+import com.twitter.elephantbird.util.HadoopCompat;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -610,58 +611,58 @@ public class CamusJob extends Configured implements Tool {
 	}
 
 	// Temporarily adding all Kafka parameters here
-	public static boolean getPostTrackingCountsToKafka(Job job) {
-		return job.getConfiguration().getBoolean(POST_TRACKING_COUNTS_TO_KAFKA,
-				true);
+	public static boolean getPostTrackingCountsToKafka(JobContext job) {
+		return HadoopCompat.getConfiguration(job).getBoolean(POST_TRACKING_COUNTS_TO_KAFKA,
+                true);
 	}
 
 	public static int getKafkaFetchRequestMinBytes(JobContext context) {
-		return context.getConfiguration().getInt(KAFKA_FETCH_REQUEST_MIN_BYTES,
+		return HadoopCompat.getConfiguration(context).getInt(KAFKA_FETCH_REQUEST_MIN_BYTES,
 				1024);
 	}
 
 	public static int getKafkaFetchRequestMaxWait(JobContext job) {
-		return job.getConfiguration()
+		return HadoopCompat.getConfiguration(job)
 				.getInt(KAFKA_FETCH_REQUEST_MAX_WAIT, 1000);
 	}
 
 	public static String getKafkaBrokers(JobContext job) {
-		String brokers = job.getConfiguration().get(KAFKA_BROKERS);
+		String brokers = HadoopCompat.getConfiguration(job).get(KAFKA_BROKERS);
 		if (brokers == null) {
-			brokers = job.getConfiguration().get(KAFKA_HOST_URL);
+			brokers = HadoopCompat.getConfiguration(job).get(KAFKA_HOST_URL);
 			if (brokers != null) {
 				log.warn("The configuration properties " + KAFKA_HOST_URL + " and " + 
 					KAFKA_HOST_PORT + " are deprecated. Please switch to using " + KAFKA_BROKERS);
-				return brokers + ":" + job.getConfiguration().getInt(KAFKA_HOST_PORT, 10251);
+				return brokers + ":" + HadoopCompat.getConfiguration(job).getInt(KAFKA_HOST_PORT, 10251);
 			}
 		}
 		return brokers;
 	}
 
 	public static int getKafkaFetchRequestCorrelationId(JobContext job) {
-		return job.getConfiguration().getInt(
+		return HadoopCompat.getConfiguration(job).getInt(
 				KAFKA_FETCH_REQUEST_CORRELATION_ID, -1);
 	}
 
 	public static String getKafkaClientName(JobContext job) {
-		return job.getConfiguration().get(KAFKA_CLIENT_NAME);
+		return HadoopCompat.getConfiguration(job).get(KAFKA_CLIENT_NAME);
 	}
 
 	public static String getKafkaFetchRequestBufferSize(JobContext job) {
-		return job.getConfiguration().get(KAFKA_FETCH_BUFFER_SIZE);
+		return HadoopCompat.getConfiguration(job).get(KAFKA_FETCH_BUFFER_SIZE);
 	}
 
 	public static int getKafkaTimeoutValue(JobContext job) {
-		int timeOut = job.getConfiguration().getInt(KAFKA_TIMEOUT_VALUE, 30000);
+		int timeOut = HadoopCompat.getConfiguration(job).getInt(KAFKA_TIMEOUT_VALUE, 30000);
 		return timeOut;
 	}
 
 	public static int getKafkaBufferSize(JobContext job) {
-		return job.getConfiguration().getInt(KAFKA_FETCH_BUFFER_SIZE,
+		return HadoopCompat.getConfiguration(job).getInt(KAFKA_FETCH_BUFFER_SIZE,
 				1024 * 1024);
 	}
 
 	public static boolean getLog4jConfigure(JobContext job) {
-		return job.getConfiguration().getBoolean(LOG4J_CONFIGURATION, false);
+		return HadoopCompat.getConfiguration(job).getBoolean(LOG4J_CONFIGURATION, false);
 	}
 }

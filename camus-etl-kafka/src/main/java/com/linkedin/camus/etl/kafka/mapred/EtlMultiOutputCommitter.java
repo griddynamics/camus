@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.twitter.elephantbird.util.HadoopCompat;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -65,7 +66,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
     public void commitTask(TaskAttemptContext context) throws IOException {
 
     	ArrayList<Map<String,Object>> allCountObject = new ArrayList<Map<String,Object>>();
-        FileSystem fs = FileSystem.get(context.getConfiguration());
+        FileSystem fs = FileSystem.get(HadoopCompat.getConfiguration(context));
         if (EtlMultiOutputFormat.isRunMoveData(context)) {
             Path workPath = super.getWorkPath();
             Path baseOutDir = EtlMultiOutputFormat.getDestinationPath(context);
@@ -94,7 +95,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
             }
 
             if (EtlMultiOutputFormat.isRunTrackingPost(context)) {
-              Path tempPath = new Path(workPath, "counts." + context.getConfiguration().get("mapred.task.id"));
+              Path tempPath = new Path(workPath, "counts." + HadoopCompat.getConfiguration(context).get("mapred.task.id"));
               OutputStream outputStream = new BufferedOutputStream(fs.create(tempPath));
               ObjectMapper mapper= new ObjectMapper();
               log.info("Writing counts to : " + tempPath.toString());
@@ -105,7 +106,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         }
 
         SequenceFile.Writer offsetWriter = SequenceFile.createWriter(fs,
-                context.getConfiguration(),
+                HadoopCompat.getConfiguration(context),
                 new Path(super.getWorkPath(), EtlMultiOutputFormat.getUniqueFile(context, EtlMultiOutputFormat.OFFSET_PREFIX, "")),
                 EtlKey.class, NullWritable.class);
         for (String s : offsets.keySet()) {

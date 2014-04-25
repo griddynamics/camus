@@ -3,6 +3,7 @@ package com.linkedin.camus.etl.kafka.coders;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import com.twitter.elephantbird.util.HadoopCompat;
 import org.apache.hadoop.mapreduce.JobContext;
 
 import com.linkedin.camus.coders.MessageDecoder;
@@ -17,7 +18,7 @@ public class MessageDecoderFactory {
             decoder = (MessageDecoder<?,?>) EtlInputFormat.getMessageDecoderClass(context).newInstance();
             
             Properties props = new Properties();
-            for (Entry<String, String> entry : context.getConfiguration()){
+            for (Entry<String, String> entry : HadoopCompat.getConfiguration(context)){
                 props.put(entry.getKey(), entry.getValue());
             }
             

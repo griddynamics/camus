@@ -12,6 +12,7 @@ import com.linkedin.camus.etl.kafka.common.KafkaReader;
 import java.io.IOException;
 import java.util.HashSet;
 
+import com.twitter.elephantbird.util.HadoopCompat;
 import kafka.message.Message;
 
 import org.apache.hadoop.fs.ChecksumException;
@@ -349,6 +350,6 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
     }
 
     public static int getMaximumDecoderExceptionsToPrint(JobContext job) {
-        return job.getConfiguration().getInt(PRINT_MAX_DECODER_EXCEPTIONS, 10);
+        return HadoopCompat.getConfiguration(job).getInt(PRINT_MAX_DECODER_EXCEPTIONS, 10);
     }
 }
