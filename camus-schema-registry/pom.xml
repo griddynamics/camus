@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.linkedin.camus</groupId>
     <artifactId>camus-parent</artifactId>
-    <version>0.1.2-GD</version>
+    <version>0.1.3-GD</version>
   </parent>
 
   <artifactId>camus-schema-registry</artifactId>
@@ -23,7 +23,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
+      <artifactId>hadoop-core</artifactId>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
