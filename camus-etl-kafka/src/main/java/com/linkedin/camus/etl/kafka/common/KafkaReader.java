@@ -161,62 +161,62 @@ public class KafkaReader {
 				CamusJob.getKafkaFetchRequestMinBytes(context), fetchInfo);
 
 		FetchResponse fetchResponse = null;
-		try {
-			fetchResponse = simpleConsumer.fetch(fetchRequest);
-			if (fetchResponse.hasError()) {
-				log.info("Error encountered during a fetch request from Kafka");
-				log.info("Error Code generated : "
-						+ fetchResponse.errorCode(kafkaRequest.getTopic(),
-								kafkaRequest.getPartition()));
-				return false;
-			} else {
-				ByteBufferMessageSet messageBuffer = fetchResponse.messageSet(
-						kafkaRequest.getTopic(), kafkaRequest.getPartition());
-				lastFetchTime = (System.currentTimeMillis() - tempTime);
-				log.debug("Time taken to fetch : "
-						+ (lastFetchTime / 1000) + " seconds");
-				log.debug("The size of the ByteBufferMessageSet returned is : " + messageBuffer.sizeInBytes());
-				int skipped = 0;
-				totalFetchTime += lastFetchTime;
-				messageIter = messageBuffer.iterator();
-				//boolean flag = false;
-				Iterator<MessageAndOffset> messageIter2 = messageBuffer
-						.iterator();
-				MessageAndOffset message = null;
-				while (messageIter2.hasNext()) {
-					message = messageIter2.next();
-					if (message.offset() < currentOffset) {
-						//flag = true;
-						skipped++;
-					} else {
-						log.debug("Skipped offsets till : "
-								+ message.offset());
-						break;
-					}
-				}
-				log.debug("Number of offsets to be skipped: " + skipped);
-				while(skipped !=0 )
-				{
-					MessageAndOffset skippedMessage = messageIter.next();
-					log.debug("Skipping offset : " + skippedMessage.offset());
-					skipped --;
-				}
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < CamusJob.getKafkaFetchRequestMaxWait(context)) {
+            try {
+                fetchResponse = simpleConsumer.fetch(fetchRequest);
+                if (fetchResponse.hasError()) {
+                    log.info("Error encountered during a fetch request from Kafka");
+                    log.info("Error Code generated : "
+                            + fetchResponse.errorCode(kafkaRequest.getTopic(),
+                            kafkaRequest.getPartition()));
+                    return false;
+                } else {
+                    ByteBufferMessageSet messageBuffer = fetchResponse.messageSet(
+                            kafkaRequest.getTopic(), kafkaRequest.getPartition());
+                    lastFetchTime = (System.currentTimeMillis() - tempTime);
+                    log.debug("Time taken to fetch : "
+                            + (lastFetchTime / 1000) + " seconds");
+                    log.debug("The size of the ByteBufferMessageSet returned is : " + messageBuffer.sizeInBytes());
+                    int skipped = 0;
+                    totalFetchTime += lastFetchTime;
+                    messageIter = messageBuffer.iterator();
+                    //boolean flag = false;
+                    Iterator<MessageAndOffset> messageIter2 = messageBuffer
+                            .iterator();
+                    MessageAndOffset message = null;
+                    while (messageIter2.hasNext()) {
+                        message = messageIter2.next();
+                        if (message.offset() < currentOffset) {
+                            //flag = true;
+                            skipped++;
+                        } else {
+                            log.debug("Skipped offsets till : "
+                                    + message.offset());
+                            break;
+                        }
+                    }
+                    log.debug("Number of offsets to be skipped: " + skipped);
+                    while(skipped !=0 )
+                    {
+                        MessageAndOffset skippedMessage = messageIter.next();
+                        log.debug("Skipping offset : " + skippedMessage.offset());
+                        skipped --;
+                    }
 
-				if (!messageIter.hasNext()) {
-					System.out
-							.println("No more data left to process. Returning false");
-					messageIter = null;
-					return false;
-				}
-
-				return true;
-			}
-		} catch (Exception e) {
-			log.info("Exception generated during fetch");
-			e.printStackTrace();
-			return false;
-		}
-
+                    if (messageIter.hasNext()) {
+                        return true;
+                    }
+                }
+            } catch (Exception e) {
+                log.info("Exception generated during fetch");
+                e.printStackTrace();
+                return false;
+            }
+        }
+        System.out.println("No more data left to process. Returning false");
+        messageIter = null;
+        return false;
 	}
 
 	/**
