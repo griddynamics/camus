@@ -51,6 +51,8 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
     private long maxPullTime = 0;
     private long beginTimeStamp = 0;
     private long endTimeStamp = 0;
+    private long currentTimeStamp = 0;
+    private long firstTimeStamp = 0;
     private HashSet<String> ignoreServerServiceList = null;
 
     private String statusMsg = "";
@@ -151,6 +153,24 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
 
     @Override
     public float getProgress() throws IOException {
+        if (maxPullHours != -1) {
+            return getTimeProgress();
+        } else {
+            return getBytesProgress();
+        }
+    }
+
+    private float getTimeProgress() {
+        if (currentTimeStamp == 0) {
+            return 0f;
+        }
+        if (currentTimeStamp >= endTimeStamp) {
+            return 1f;
+        }
+        return (endTimeStamp - currentTimeStamp) / (endTimeStamp - firstTimeStamp);
+    }
+
+    private float getBytesProgress() throws  IOException {
         if (getPos() == 0) {
             return 0f;
         }
@@ -271,6 +291,10 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     }
 
                     long timeStamp = wrapper.getTimestamp();
+                    currentTimeStamp = Math.max(currentTimeStamp, timeStamp);
+                    if (count == 1) {
+                        firstTimeStamp = timeStamp;
+                    }
                     try {
                         key.setTime(timeStamp);
                         key.setPartition(wrapper.getPartitionMap());
