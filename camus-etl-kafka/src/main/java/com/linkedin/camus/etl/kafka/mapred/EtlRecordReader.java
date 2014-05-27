@@ -1,5 +1,7 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
+import com.yammer.metrics.core.MetricPredicate;
+import com.yammer.metrics.reporting.GraphiteReporter;
 import com.linkedin.camus.coders.CamusWrapper;
 import com.linkedin.camus.coders.MessageDecoder;
 import com.linkedin.camus.etl.kafka.CamusJob;
@@ -111,6 +113,8 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
         {
         	ignoreServerServiceList.add(ignoreServerServiceTopic);
         }
+
+        EtlInputFormat.enableGraphiteReporter(context);
 
         this.totalBytes = this.split.getLength();
     }

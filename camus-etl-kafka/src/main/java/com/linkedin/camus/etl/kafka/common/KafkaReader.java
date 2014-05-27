@@ -3,13 +3,21 @@ package com.linkedin.camus.etl.kafka.common;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Gauge;
+import com.yammer.metrics.core.MetricName;
 import kafka.api.PartitionFetchInfo;
+import kafka.api.PartitionOffsetRequestInfo;
+import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
 import kafka.javaapi.FetchRequest;
 import kafka.javaapi.FetchResponse;
+import kafka.javaapi.OffsetRequest;
+import kafka.javaapi.OffsetResponse;
 import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
 import kafka.message.Message;
@@ -20,6 +28,9 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.log4j.Logger;
 
 import com.linkedin.camus.etl.kafka.CamusJob;
+
+import static kafka.api.OffsetRequest.CurrentVersion;
+import static kafka.api.OffsetRequest.DefaultClientId;
 
 /**
  * Poorly named class that handles kafka pull events within each
@@ -78,10 +89,52 @@ public class KafkaReader {
 		log.info("Connected to leader " + uri
 				+ " beginning reading at offset " + beginOffset
 				+ " latest offset=" + lastOffset);
+        registerMetrics(request, simpleConsumer);
 		fetch();
 	}
 
-	public boolean hasNext() throws IOException {
+    private void registerMetrics(final EtlRequest request, final SimpleConsumer simpleConsumer) {
+        MetricName currentOffsetMetricName = new MetricName(request.getTopic(), "currentOffset", "partition-" + request.getPartition());
+        MetricName lagMetricName = new MetricName(request.getTopic(), "lag", "partition-" + request.getPartition());
+        Metrics.defaultRegistry().removeMetric(currentOffsetMetricName);
+        Metrics.defaultRegistry().newGauge(currentOffsetMetricName, new Gauge<Long>() {
+            @Override
+            public Long value() {
+                return currentOffset;
+            }
+        });
+        Metrics.defaultRegistry().newGauge(lagMetricName, new Gauge<Long>() {
+            @Override
+            public Long value() {
+                try {
+                    long last = getLatestOffset(request.getTopic(), request.getPartition(), simpleConsumer);
+                    return last - currentOffset;
+                } catch (Exception e) {
+                    log.warn("Can't get topic latest offset");
+                    return null;
+                }
+            }
+        });
+    }
+
+    public static long getLatestOffset(String topic, int partition, SimpleConsumer leader) throws Exception {
+        long time = kafka.api.OffsetRequest.LatestTime();
+        TopicAndPartition tp = new TopicAndPartition(topic, partition);
+        PartitionOffsetRequestInfo requestInfo = new PartitionOffsetRequestInfo(time, 1);
+        OffsetRequest request = new OffsetRequest(Collections.singletonMap(tp, requestInfo), CurrentVersion(), DefaultClientId());
+        OffsetResponse response = leader.getOffsetsBefore(request);
+
+        if (response.hasError()) {
+            final short errorCode = response.errorCode(tp.topic(), tp.partition());
+            Exception ex = (Exception) ErrorMapping.exceptionFor(errorCode);
+            throw ex;
+        } else {
+            long offset = response.offsets(tp.topic(), tp.partition())[0];
+            return offset;
+        }
+    }
+
+    public boolean hasNext() throws IOException {
 		if (messageIter != null && messageIter.hasNext())
 			return true;
 		else

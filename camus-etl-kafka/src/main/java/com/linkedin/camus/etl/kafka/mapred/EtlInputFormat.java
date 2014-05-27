@@ -21,9 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import com.twitter.elephantbird.util.HadoopCompat;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricPredicate;
+import com.yammer.metrics.reporting.GraphiteReporter;
 import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
@@ -68,6 +72,11 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 	public static final String CAMUS_MESSAGE_DECODER_CLASS = "camus.message.decoder.class";
 	public static final String ETL_IGNORE_SCHEMA_ERRORS = "etl.ignore.schema.errors";
 	public static final String ETL_AUDIT_IGNORE_SERVICE_TOPIC_LIST = "etl.audit.ignore.service.topic.list";
+
+    public static final String METRICS_GRAPHITE_HOST = "metrics.graphite.host";
+    public static final String METRICS_GRAPHITE_PORT = "metrics.graphite.port";
+    public static final String METRICS_GRAPHITE_GROUP = "metrics.graphite.group";
+    public static final String METRICS_GRAPHITE_POLLING_INTERVAL = "metrics.polling.interval.secs";
 
 	private static Logger log = null;
 	
@@ -630,6 +639,19 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 		return (Class<MessageDecoder>) HadoopCompat.getConfiguration(job).getClass(
 				CAMUS_MESSAGE_DECODER_CLASS, KafkaAvroMessageDecoder.class);
 	}
+
+    public static void enableGraphiteReporter(JobContext context) {
+        if(HadoopCompat.getConfiguration(context).getTrimmed(EtlInputFormat.METRICS_GRAPHITE_HOST) == null) {
+            return;
+        }
+        GraphiteReporter.enable(Metrics.defaultRegistry(),
+                HadoopCompat.getConfiguration(context).getInt(EtlInputFormat.METRICS_GRAPHITE_POLLING_INTERVAL, 10),
+                TimeUnit.SECONDS,
+                HadoopCompat.getConfiguration(context).getTrimmed(EtlInputFormat.METRICS_GRAPHITE_HOST),
+                HadoopCompat.getConfiguration(context).getInt(EtlInputFormat.METRICS_GRAPHITE_PORT, 2023),
+                HadoopCompat.getConfiguration(context).getTrimmed(EtlInputFormat.METRICS_GRAPHITE_GROUP),
+                MetricPredicate.ALL);
+    }
 
 	private class OffsetFileFilter implements PathFilter {
 
