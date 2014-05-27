@@ -635,10 +635,16 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 				MessageDecoder.class);
 	}
 
-	public static Class<MessageDecoder> getMessageDecoderClass(JobContext job) {
-		return (Class<MessageDecoder>) HadoopCompat.getConfiguration(job).getClass(
-				CAMUS_MESSAGE_DECODER_CLASS, KafkaAvroMessageDecoder.class);
+	public static Class<MessageDecoder> getMessageDecoderClass(JobContext job, String topicName) {
+        String customDecoderPropertyName = CAMUS_MESSAGE_DECODER_CLASS + "." + topicName;
+		 return (Class<MessageDecoder>) HadoopCompat.getConfiguration(job).getClass(
+				customDecoderPropertyName, getMessageDecoderClass(job));
 	}
+
+    public static Class<MessageDecoder> getMessageDecoderClass(JobContext job) {
+   		return (Class<MessageDecoder>) HadoopCompat.getConfiguration(job).getClass(
+   				CAMUS_MESSAGE_DECODER_CLASS, KafkaAvroMessageDecoder.class);
+   	}
 
     public static void enableGraphiteReporter(JobContext context) {
         if(HadoopCompat.getConfiguration(context).getTrimmed(EtlInputFormat.METRICS_GRAPHITE_HOST) == null) {
