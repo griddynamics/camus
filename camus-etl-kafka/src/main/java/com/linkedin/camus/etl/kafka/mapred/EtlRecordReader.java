@@ -1,7 +1,8 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
-import com.yammer.metrics.core.MetricPredicate;
-import com.yammer.metrics.reporting.GraphiteReporter;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Gauge;
+import com.yammer.metrics.core.MetricName;
 import com.linkedin.camus.coders.CamusWrapper;
 import com.linkedin.camus.coders.MessageDecoder;
 import com.linkedin.camus.etl.kafka.CamusJob;
@@ -61,6 +62,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
 
     EtlSplit split;
     private static Logger log = Logger.getLogger(EtlRecordReader.class);
+    private LogicalTimeLagGauge logicalTimeGauge;
 
     /**
      * Record reader to fetch directly from Kafka
@@ -251,6 +253,10 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                             CamusJob.getKafkaBufferSize(mapperContext));
 
                     decoder = MessageDecoderFactory.createMessageDecoder(context, request.getTopic());
+
+                    MetricName timeDifferenceMetricName = new MetricName(request.getTopic(), "logical-time-lag", "partition-" + request.getPartition());
+                    logicalTimeGauge = (LogicalTimeLagGauge) Metrics.defaultRegistry().newGauge(timeDifferenceMetricName, new LogicalTimeLagGauge());
+
                 }
                 int count = 0;
                 while (reader.getNext(key, msgValue, msgKey)) {
@@ -296,6 +302,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
 
                     long timeStamp = wrapper.getTimestamp();
                     currentTimeStamp = Math.max(currentTimeStamp, timeStamp);
+                    logicalTimeGauge.currentLogicalTime(currentTimeStamp);
                     if (count == 1) {
                         firstTimeStamp = timeStamp;
                     }
@@ -379,5 +386,18 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
 
     public static int getMaximumDecoderExceptionsToPrint(JobContext job) {
         return HadoopCompat.getConfiguration(job).getInt(PRINT_MAX_DECODER_EXCEPTIONS, 10);
+    }
+
+    public static class LogicalTimeLagGauge extends Gauge<Long> {
+        long value = 0;
+
+        public void currentLogicalTime(long value) {
+            this.value = value;
+        }
+
+        @Override
+        public Long value() {
+            return System.currentTimeMillis() - value;
+        }
     }
 }
