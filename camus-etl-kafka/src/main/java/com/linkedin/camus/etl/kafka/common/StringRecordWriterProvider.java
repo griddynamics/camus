@@ -7,6 +7,7 @@ import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
 import java.io.IOException;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
@@ -28,7 +29,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
     // To do this, we'd have to make RecordWriterProvider have an
     // init(JobContext context) method signature that EtlMultiOutputFormat would always call.
     @Override
-    public String getFilenameExtension() {
+    public String getFilenameExtension(JobContext context) {
         return "";
     }
 
@@ -51,7 +52,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         Path path = new Path(
             committer.getWorkPath(),
             EtlMultiOutputFormat.getUniqueFile(
-                context, fileName, getFilenameExtension()
+                context, fileName, getFilenameExtension(context)
             )
         );
 

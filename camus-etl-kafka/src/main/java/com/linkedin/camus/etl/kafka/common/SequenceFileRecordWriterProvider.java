@@ -6,6 +6,7 @@ import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
 import java.io.IOException;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -45,7 +46,7 @@ public class SequenceFileRecordWriterProvider implements RecordWriterProvider {
     // To do this, we'd have to make SequenceFileRecordWriterProvider have an
     // init(JobContext context) method signature that EtlMultiOutputFormat would always call.
     @Override
-    public String getFilenameExtension() {
+    public String getFilenameExtension(JobContext context) {
         return "";
     }
 
@@ -82,20 +83,20 @@ public class SequenceFileRecordWriterProvider implements RecordWriterProvider {
         Path path = new Path(
             committer.getWorkPath(),
             EtlMultiOutputFormat.getUniqueFile(
-                context, fileName, getFilenameExtension()
+                context, fileName, getFilenameExtension(context)
             )
         );
 
         log.info("Creating new SequenceFile.Writer with compression type " + compressionType + " and compression codec " + ( compressionCodec != null ? compressionCodec.getClass().getName() : "null"));
         final SequenceFile.Writer writer = SequenceFile.createWriter(
-            path.getFileSystem(conf),
-            conf,
-            path,
-            LongWritable.class,
-            Text.class,
-            compressionType,
-            compressionCodec,
-            context
+                path.getFileSystem(conf),
+                conf,
+                path,
+                LongWritable.class,
+                Text.class,
+                compressionType,
+                compressionCodec,
+                context
         );
 
         // Return a new anonymous RecordWriter that uses the

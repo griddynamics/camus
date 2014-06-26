@@ -10,6 +10,7 @@ import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
@@ -23,7 +24,7 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
     public final static String EXT = ".avro";
 
     @Override
-    public String getFilenameExtension() {
+    public String getFilenameExtension(JobContext context) {
         return EXT;
     }
 

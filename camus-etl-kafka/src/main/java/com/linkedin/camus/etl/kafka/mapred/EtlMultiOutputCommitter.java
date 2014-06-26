@@ -58,7 +58,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        workingFileMetadataPattern = Pattern.compile("data\\.([^\\.]+)\\.([\\d_]+)\\.(\\d+)\\.([^\\.]+)-m-\\d+" + recordWriterProvider.getFilenameExtension());
+        workingFileMetadataPattern = Pattern.compile("data\\.([^\\.]+)\\.([\\d_]+)\\.(\\d+)\\.([^\\.]+)-m-\\d+" + recordWriterProvider.getFilenameExtension(context));
         this.log = log;
     }
 
@@ -89,7 +89,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
 
                     if (EtlMultiOutputFormat.isRunTrackingPost(context)) {
                             count.writeCountsToMap(allCountObject, fs, new Path(workPath, EtlMultiOutputFormat.COUNTS_PREFIX + "."
-                                    + dest.getName().replace(recordWriterProvider.getFilenameExtension(), "")));
+                                    + dest.getName().replace(recordWriterProvider.getFilenameExtension(context), "")));
                     }
                 }
             }
@@ -115,7 +115,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         offsetWriter.close();
         super.commitTask(context);
     }
-    
+
     protected void commitFile(JobContext job, Path source, Path target) throws IOException{
       FileSystem.get(job.getConfiguration()).rename(source, target);
     }
@@ -137,8 +137,8 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         return partitionedPath +
                     "/" + topic + "." + leaderId + "." + partition +
                     "." + count+
-                    "." + offset + 
-                    "." + encodedPartition + 
-                    recordWriterProvider.getFilenameExtension();
+                    "." + offset +
+                    "." + encodedPartition +
+                    recordWriterProvider.getFilenameExtension(context);
     }
 }
