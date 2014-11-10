@@ -43,12 +43,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobID;
-import org.apache.hadoop.mapred.TIPStatus;
-import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapred.TaskReport;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.CounterGroup;
 import org.apache.hadoop.mapreduce.Counters;
@@ -126,7 +121,7 @@ public class CamusJob extends Configured implements Tool {
 						+ System.currentTimeMillis());
 	}
 	
-	private Job createJob(Properties props) throws IOException {
+	protected Job createJob(Properties props) throws IOException {
 	  Job job; 
 	  if(getConf() == null)
 	    {
@@ -193,11 +188,10 @@ public class CamusJob extends Configured implements Tool {
 		}
 	}
 
-	public void run() throws Exception {
+	public void run(Job job) throws Exception {
 
 		startTiming("pre-setup");
 		startTiming("total");
-		Job job = createJob(props);
 		if (getLog4jConfigure(job)) {
 			DOMConfigurator.configure("log4j.xml");
 		}
@@ -606,7 +600,22 @@ public class CamusJob extends Configured implements Tool {
 
 		props.putAll(cmd.getOptionProperties("D"));
 
-		run();
+        final Job job = createJob(props);
+
+        final JobClient jobClient = new JobClient(getConf());
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    RunningJob runningJob = jobClient.getJob(JobID.downgrade(job.getJobID()));
+                    runningJob.killJob();
+                } catch (IOException e) {
+                    log.error("Camus job killing error", e);
+                }
+            }
+        });
+
+		run(job);
 		return 0;
 	}
 
