@@ -115,7 +115,7 @@ public class CamusJobTest {
     
     @Test
     public void runJob() throws Exception {
-        job.run();
+        job.run(job.createJob(props));
         
         assertCamusContains(TOPIC_1);
         assertCamusContains(TOPIC_2);
@@ -123,7 +123,7 @@ public class CamusJobTest {
         
         // Run a second time (no additional messages should be found)
         job = new CamusJob(props);
-        job.run();
+        job.run(job.createJob(props));
         
         assertCamusContains(TOPIC_1);
         assertCamusContains(TOPIC_2);

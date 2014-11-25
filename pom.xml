@@ -9,7 +9,7 @@
 
 	<groupId>com.linkedin.camus</groupId>
 	<artifactId>camus-parent</artifactId>
-	<version>0.1.8-GD</version>
+	<version>0.1.9-GD</version>
 	<packaging>pom</packaging>
 	<name>Camus Parent</name>
 	<description>
@@ -26,27 +26,27 @@
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-api</artifactId>
-				<version>0.1.8-GD</version>
+				<version>0.1.9-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-etl-kafka</artifactId>
-				<version>0.1.8-GD</version>
+				<version>0.1.9-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-kafka-coders</artifactId>
-				<version>0.1.8-GD</version>
+				<version>0.1.9-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.8-GD</version>
+				<version>0.1.9-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.8-GD</version>
+				<version>0.1.9-GD</version>
 				<type>test-jar</type>
 				<scope>test</scope>
 			</dependency>
@@ -230,13 +230,22 @@
 					</execution>
 				</executions>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
     <distributionManagement>
         <repository>
             <id>3rdparty-deployment</id>
             <name>Internal Releases</name>
-            <url>http://ec2-50-19-131-35.compute-1.amazonaws.com:8081/nexus/content/repositories/thirdparty/</url>
+            <url>http://54.164.42.236:8081/nexus/content/repositories/thirdparty/</url>
         </repository>
     </distributionManagement>
 </project>
