@@ -213,7 +213,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
         // we only pull for a specified time. unfinished work will be
         // rescheduled in the next
         // run.
-        if (System.currentTimeMillis() > maxPullTime) {
+        if (wallClock() > maxPullTime) {
             log.info("Max pull time reached");
             if (reader != null) {
                 closeReader();
@@ -255,7 +255,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     decoder = MessageDecoderFactory.createMessageDecoder(context, request.getTopic());
 
                     MetricName timeDifferenceMetricName = new MetricName(request.getTopic(), "logical-time-lag", "partition-" + request.getPartition());
-                    logicalTimeGauge = (LogicalTimeLagGauge) Metrics.defaultRegistry().newGauge(timeDifferenceMetricName, new LogicalTimeLagGauge());
+                    logicalTimeGauge = (LogicalTimeLagGauge) Metrics.defaultRegistry().newGauge(timeDifferenceMetricName, new LogicalTimeLagGauge(wallClock()));
 
                 }
                 int count = 0;
@@ -279,7 +279,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     		  key.getOffset());
                     }
 
-                    long tempTime = System.currentTimeMillis();
+                    long tempTime = wallClock();
                     CamusWrapper wrapper;
                     try {
                         wrapper = getWrappedRecord(key.getTopic(), bytes);
@@ -323,10 +323,10 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                         context.setStatus(statusMsg);
                         log.info(key.getTopic() + " begin read at " + time.toString());
                         endTimeStamp = (time.plusHours(this.maxPullHours)).getMillis();
-                    } else if (timeStamp > endTimeStamp || System.currentTimeMillis() > maxPullTime) {
+                    } else if (timeStamp > endTimeStamp || wallClock() > maxPullTime) {
                         if (timeStamp > endTimeStamp)
                             log.info("Kafka Max history hours reached");
-                        if (System.currentTimeMillis() > maxPullTime)
+                        if (wallClock() > maxPullTime)
                             log.info("Kafka pull time limit reached");
                         statusMsg += " max read at " + new DateTime(timeStamp).toString();
                         context.setStatus(statusMsg);
@@ -337,7 +337,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                         closeReader();
                     }
 
-                    long secondTime = System.currentTimeMillis();
+                    long secondTime = wallClock();
                     value = wrapper;
                     long decodeTime = ((secondTime - tempTime));
 
@@ -388,16 +388,24 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
         return HadoopCompat.getConfiguration(job).getInt(PRINT_MAX_DECODER_EXCEPTIONS, 10);
     }
 
-    public static class LogicalTimeLagGauge extends Gauge<Long> {
+    private static class LogicalTimeLagGauge extends Gauge<Long> {
         long value = 0;
 
-        public void currentLogicalTime(long value) {
+        LogicalTimeLagGauge(long initial) {
+            value = initial;
+        }
+
+        void currentLogicalTime(long value) {
             this.value = value;
         }
 
         @Override
         public Long value() {
-            return System.currentTimeMillis() - value;
+            return wallClock() - value;
         }
+    }
+
+    private static long wallClock() {
+        return System.currentTimeMillis();
     }
 }
