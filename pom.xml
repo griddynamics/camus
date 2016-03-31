@@ -245,7 +245,7 @@
         <repository>
             <id>3rdparty-deployment</id>
             <name>Internal Releases</name>
-            <url>http://54.164.42.236:8081/nexus/content/repositories/thirdparty/</url>
+            <url>http://52.7.233.170:8081/nexus/content/repositories/thirdparty/</url>
         </repository>
     </distributionManagement>
 </project>
