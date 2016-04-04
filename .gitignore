@@ -21,6 +21,8 @@ target
 **/.idea
 .idea
 **/dependency-reduced-pom.xml
+pom.xml.versionsBackup
+**/pom.xml.versionsBackup
 
 # target dirs
 camus-api/target/

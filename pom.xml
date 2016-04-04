@@ -9,7 +9,7 @@
 
 	<groupId>com.linkedin.camus</groupId>
 	<artifactId>camus-parent</artifactId>
-	<version>0.1.9-GD</version>
+	<version>0.1.10-GD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Camus Parent</name>
 	<description>
@@ -26,27 +26,27 @@
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-api</artifactId>
-				<version>0.1.9-GD</version>
+				<version>0.1.10-GD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-etl-kafka</artifactId>
-				<version>0.1.9-GD</version>
+				<version>0.1.10-GD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-kafka-coders</artifactId>
-				<version>0.1.9-GD</version>
+				<version>0.1.10-GD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.9-GD</version>
+				<version>0.1.10-GD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.9-GD</version>
+				<version>0.1.10-GD-SNAPSHOT</version>
 				<type>test-jar</type>
 				<scope>test</scope>
 			</dependency>
@@ -67,7 +67,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.avro</groupId>
-				<version>1.7.4-SNAPSHOT</version>
+				<version>1.7.4</version>
 				<artifactId>avro-repo-bundle</artifactId>
 			</dependency>
 			<dependency>
@@ -222,10 +222,10 @@
 						<configuration>
 							<groupId>org.apache.avro</groupId>
 							<artifactId>avro-repo-bundle</artifactId>
-							<version>1.7.4-SNAPSHOT</version>
+							<version>1.7.4</version>
 							<packaging>jar</packaging>
-							<file>${basedir}/lib/avro-repo-bundle-1.7.4-SNAPSHOT-withdeps.jar</file>
-							<pomFile>${basedir}/lib/avro-repo-bundle-1.7.4-SNAPSHOT-withdeps.xml</pomFile>
+							<file>${basedir}/lib/avro-repo-bundle-1.7.4-withdeps.jar</file>
+							<pomFile>${basedir}/lib/avro-repo-bundle-1.7.4-withdeps.xml</pomFile>
 						</configuration>
 					</execution>
 				</executions>
