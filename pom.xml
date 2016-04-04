@@ -173,9 +173,9 @@
 	</licenses>
 
 	<scm>
-		<connection>scm:git:git://github.com/linkedin/camus.git</connection>
-		<developerConnection>scm:git:git@github.com:linkedin/camus.git</developerConnection>
-		<url>http://github.com/linkedin/camus/</url>
+		<connection>scm:git:git://github.com/griddynamics/camus.git</connection>
+		<developerConnection>scm:git:git@github.com:griddynamics/camus.git</developerConnection>
+		<url>http://github.com/griddynamics/camus/</url>
 	</scm>
 
 	<issueManagement>
