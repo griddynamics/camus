@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<prerequisites>
@@ -9,11 +8,11 @@
 
 	<groupId>com.linkedin.camus</groupId>
 	<artifactId>camus-parent</artifactId>
-	<version>0.1.10-GD-SNAPSHOT</version>
+	<version>0.1.10-GD</version>
 	<packaging>pom</packaging>
 	<name>Camus Parent</name>
 	<description>
-    Camus is LinkedIn's Kafka->HDFS pipeline. It is a mapreduce job that does distributed data loads out of Kafka.
+    Camus is LinkedIn's Kafka-&gt;HDFS pipeline. It is a mapreduce job that does distributed data loads out of Kafka.
   </description>
 	<url>https://github.com/linkedin/camus</url>
 
@@ -26,27 +25,27 @@
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-api</artifactId>
-				<version>0.1.10-GD-SNAPSHOT</version>
+				<version>0.1.10-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-etl-kafka</artifactId>
-				<version>0.1.10-GD-SNAPSHOT</version>
+				<version>0.1.10-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-kafka-coders</artifactId>
-				<version>0.1.10-GD-SNAPSHOT</version>
+				<version>0.1.10-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.10-GD-SNAPSHOT</version>
+				<version>0.1.10-GD</version>
 			</dependency>
 			<dependency>
 				<groupId>com.linkedin.camus</groupId>
 				<artifactId>camus-schema-registry</artifactId>
-				<version>0.1.10-GD-SNAPSHOT</version>
+				<version>0.1.10-GD</version>
 				<type>test-jar</type>
 				<scope>test</scope>
 			</dependency>
@@ -176,7 +175,8 @@
 		<connection>scm:git:git://github.com/griddynamics/camus.git</connection>
 		<developerConnection>scm:git:git@github.com:griddynamics/camus.git</developerConnection>
 		<url>http://github.com/griddynamics/camus/</url>
-	</scm>
+	  <tag>camus-parent-0.1.10-GD</tag>
+  </scm>
 
 	<issueManagement>
 		<system>github</system>
