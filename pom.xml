@@ -245,12 +245,12 @@
         <repository>
             <id>3rdparty-deployment</id>
             <name>Internal Releases</name>
-            <url>http://52.7.233.170:8081/nexus/content/repositories/thirdparty/</url>
+            <url>http://nexus.aws.niagara.303net.pvt:8081/nexus/content/repositories/thirdparty/</url>
         </repository>
 	<snapshotRepository>
 	    <id>niagara-snapshots</id>
 	    <name>Niagara Snapshots</name>
-	    <url>http://52.7.233.170:8081/nexus/content/repositories/snapshots</url>
+	    <url>http://nexus.aws.niagara.303net.pvt:8081/nexus/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 </project>
