@@ -1,12 +1,6 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-
+import com.linkedin.camus.etl.kafka.CamusJob;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Gauge;
 import com.yammer.metrics.core.MetricName;
@@ -22,12 +16,16 @@ import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.javaapi.message.ByteBufferMessageSet;
 import kafka.message.Message;
 import kafka.message.MessageAndOffset;
-
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.log4j.Logger;
 
-import com.linkedin.camus.etl.kafka.CamusJob;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import static kafka.api.OffsetRequest.CurrentVersion;
 import static kafka.api.OffsetRequest.DefaultClientId;
@@ -41,6 +39,8 @@ import static kafka.api.OffsetRequest.DefaultClientId;
 public class KafkaReader {
 	// index of context
 	private static Logger log =  Logger.getLogger(KafkaReader.class);
+	private final int[] DELAYS_MS = {2, 512, 1024, 2048, 4096, 8192, 16384};
+
 	private EtlRequest kafkaRequest = null;
 	private SimpleConsumer simpleConsumer = null;
 
@@ -200,7 +200,7 @@ public class KafkaReader {
 		long tempTime = System.currentTimeMillis();
 		TopicAndPartition topicAndPartition = new TopicAndPartition(
 				kafkaRequest.getTopic(), kafkaRequest.getPartition());
-		log.debug("\nAsking for offset : " + (currentOffset));
+		log.info("Asking for offset : " + (currentOffset));
 		PartitionFetchInfo partitionFetchInfo = new PartitionFetchInfo(
 				currentOffset, fetchBufferSize);
 
@@ -215,21 +215,22 @@ public class KafkaReader {
 
 		FetchResponse fetchResponse = null;
         long startTime = System.currentTimeMillis();
+
+        int tryCount = 0;
         while (System.currentTimeMillis() - startTime < CamusJob.getKafkaFetchRequestMaxWait(context)) {
             try {
                 fetchResponse = simpleConsumer.fetch(fetchRequest);
                 if (fetchResponse.hasError()) {
-                    log.info("Error encountered during a fetch request from Kafka");
-                    log.info("Error Code generated : "
-                            + fetchResponse.errorCode(kafkaRequest.getTopic(),
-                            kafkaRequest.getPartition()));
+                    log.warn("Error encountered during a fetch request from Kafka");
+                    log.warn("Error Code generated : "
+                            + fetchResponse.errorCode(kafkaRequest.getTopic(), kafkaRequest.getPartition())
+                    );
                     return false;
                 } else {
                     ByteBufferMessageSet messageBuffer = fetchResponse.messageSet(
                             kafkaRequest.getTopic(), kafkaRequest.getPartition());
                     lastFetchTime = (System.currentTimeMillis() - tempTime);
-                    log.debug("Time taken to fetch : "
-                            + (lastFetchTime / 1000) + " seconds");
+                    log.debug("Time taken to fetch : " + (lastFetchTime / 1000) + " seconds");
                     log.debug("The size of the ByteBufferMessageSet returned is : " + messageBuffer.sizeInBytes());
                     int skipped = 0;
                     totalFetchTime += lastFetchTime;
@@ -238,31 +239,42 @@ public class KafkaReader {
                     Iterator<MessageAndOffset> messageIter2 = messageBuffer
                             .iterator();
                     MessageAndOffset message = null;
+                    int messageCount = 0;
                     while (messageIter2.hasNext()) {
+                    	messageCount++;
                         message = messageIter2.next();
                         if (message.offset() < currentOffset) {
                             //flag = true;
                             skipped++;
                         } else {
-                            log.debug("Skipped offsets till : "
-                                    + message.offset());
+                            log.debug("Skipped offsets till : " + message.offset());
                             break;
                         }
                     }
+                    log.info("Messages fetched: " + messageCount);
                     log.debug("Number of offsets to be skipped: " + skipped);
                     while(skipped !=0 )
                     {
                         MessageAndOffset skippedMessage = messageIter.next();
-                        log.debug("Skipping offset : " + skippedMessage.offset());
+                        log.info("Skipping offset : " + skippedMessage.offset());
                         skipped --;
                     }
 
                     if (messageIter.hasNext()) {
                         return true;
                     }
+
+                    log.warn("No messages received");
+                    log.warn("Received bytes: " + messageBuffer.sizeInBytes());
+                    log.warn("Received valid bytes: " + messageBuffer.validBytes());
+
+                    int waitTime = tryCount < DELAYS_MS.length ? DELAYS_MS[tryCount] : DELAYS_MS[DELAYS_MS.length -1];
+                    log.warn("Waiting for " + waitTime + " ms. before next try");
+                    Thread.sleep(waitTime);
+
                 }
             } catch (Exception e) {
-                log.info("Exception generated during fetch");
+                log.info("Exception generated during fetch", e);
                 e.printStackTrace();
                 return false;
             }

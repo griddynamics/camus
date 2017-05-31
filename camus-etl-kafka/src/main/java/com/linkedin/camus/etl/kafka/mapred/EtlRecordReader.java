@@ -1,8 +1,5 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.MetricName;
 import com.linkedin.camus.coders.CamusWrapper;
 import com.linkedin.camus.coders.MessageDecoder;
 import com.linkedin.camus.etl.kafka.CamusJob;
@@ -11,13 +8,11 @@ import com.linkedin.camus.etl.kafka.common.EtlKey;
 import com.linkedin.camus.etl.kafka.common.EtlRequest;
 import com.linkedin.camus.etl.kafka.common.ExceptionWritable;
 import com.linkedin.camus.etl.kafka.common.KafkaReader;
-
-import java.io.IOException;
-import java.util.HashSet;
-
 import com.twitter.elephantbird.util.HadoopCompat;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Gauge;
+import com.yammer.metrics.core.MetricName;
 import kafka.message.Message;
-
 import org.apache.hadoop.fs.ChecksumException;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Writable;
@@ -29,6 +24,9 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+
+import java.io.IOException;
+import java.util.HashSet;
 
 public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
     private static final String PRINT_MAX_DECODER_EXCEPTIONS = "max.decoder.exceptions.to.print";
@@ -236,7 +234,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     key.set(request.getTopic(), request.getLeaderId(), request.getPartition(),
                             request.getOffset(), request.getOffset(), 0);
                     value = null;
-                    log.info("\n\ntopic:" + request.getTopic() + " partition:"
+                    log.info("topic:" + request.getTopic() + " partition:"
                             + request.getPartition() + " beginOffset:" + request.getOffset()
                             + " estimatedLastOffset:" + request.getLastOffset());
 
