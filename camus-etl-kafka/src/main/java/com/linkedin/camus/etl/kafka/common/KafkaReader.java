@@ -265,13 +265,13 @@ public class KafkaReader {
                     }
 
                     log.warn("No messages received");
-                    log.warn("Received bytes: " + messageBuffer.sizeInBytes());
-                    log.warn("Received valid bytes: " + messageBuffer.validBytes());
+                    log.warn("Received bytes: " + messageBuffer.sizeInBytes()
+                            + ". Received valid bytes: " + messageBuffer.validBytes());
 
                     int waitTime = tryCount < DELAYS_MS.length ? DELAYS_MS[tryCount] : DELAYS_MS[DELAYS_MS.length -1];
                     log.warn("Waiting for " + waitTime + " ms. before next try");
                     Thread.sleep(waitTime);
-
+                    tryCount++;
                 }
             } catch (Exception e) {
                 log.info("Exception generated during fetch", e);
